@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入後頁面</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+            max-width: 400px;
+            width: 90%;
+        }
+        .info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info div {
+            margin: 10px 0;
+            font-size: 22px;
+            opacity: 0;
+            animation: slideIn 0.8s ease-out 0.5s forwards;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        button {
+            padding: 15px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        button:hover::before {
+            left: 100%;
+        }
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info">
+            <div id="time" class="loading">載入中...</div>
+            <div id="name" class="loading">載入中...</div>
+        </div>
+        <div class="buttons">
+            <button id="equipment">📱 設備</button>
+            <button id="stationery">✏️ 文具</button>
+            <button id="order">🍽️ 訂餐</button>
+            <button id="back">⬅️ 返回</button>
+        </div>
+    </div>
+
+    <script>
+        // ✅ 替換成你的 GAS 部署 URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyACtMKVngQdstQIvWwhxhG5AdvCZElmCdKvW8kQLWguHxLCWESDlVPjm13Ae_lEgDd/exec';
+
+        // 顯示當前時間
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time').textContent = '時間: ' + now.toLocaleString('zh-TW');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // ✅ 從 localStorage 讀取帳號（登入時存入的）
+        const account = localStorage.getItem('account');
+
+        if (!account) {
+            // 沒有登入資訊，踢回登入頁
+            alert('請先登入');
+            window.location.href = 'index.html';
+        } else {
+            // ✅ 用帳號向 GAS 查詢姓名
+            fetch(`${SCRIPT_URL}?account=${account}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.name) {
+                        document.getElementById('name').textContent = '歡迎，' + data.name;
+                    } else {
+                        document.getElementById('name').textContent = '名字：未找到';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('name').textContent = '名字：無法載入';
+                });
+        }
+
+        // 按鈕事件
+        document.getElementById('equipment').addEventListener('click', () => {
+            window.location.href = 'device.html';
+        });
+
+        document.getElementById('stationery').addEventListener('click', () => {
+            window.location.href = 'Stationery.html';
+        });
+
+        document.getElementById('order').addEventListener('click', () => {
+            alert('訂餐頁面');
+        });
+
+        document.getElementById('back').addEventListener('click', () => {
+            localStorage.removeItem('account'); // 登出時清除
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
