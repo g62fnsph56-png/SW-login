@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>義大社工科｜文具資料庫</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#f0f4f0;--cream:#fafcfa;--sage:#7aab8a;--sage2:#5d9170;--sage3:#3d6b52;
+      --mint:#b8d8c4;--warm:#e8a87c;--warm2:#d4724a;--sky:#6aadcc;--sky2:#4a8faa;
+      --danger:#e05555;--ink:#1e2e28;--ink2:#3d5a4a;--muted:#7a9888;
+      --border:#c8ddd0;--white:#ffffff;--shadow:rgba(30,80,50,0.10);--radius:16px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans TC',sans-serif;font-size:16px;background:var(--bg);
+      background-image:radial-gradient(circle at 8% 12%,rgba(122,171,138,0.18) 0%,transparent 45%),
+        radial-gradient(circle at 92% 85%,rgba(184,216,196,0.15) 0%,transparent 40%);
+      min-height:100vh;display:flex;flex-direction:column;align-items:center;
+      padding:24px 14px 56px;color:var(--ink);}
+    .deco{position:fixed;pointer-events:none;opacity:0.09;animation:floatY 7s ease-in-out infinite;z-index:0;}
+    .deco:nth-child(1){top:6%;left:3%;font-size:1.8rem;animation-delay:0s;}
+    .deco:nth-child(2){top:20%;right:4%;font-size:1.1rem;animation-delay:2s;}
+    .deco:nth-child(3){top:55%;left:2%;font-size:1rem;animation-delay:3.5s;}
+    .deco:nth-child(4){top:75%;right:3%;font-size:1.5rem;animation-delay:1.5s;}
+    .deco:nth-child(5){top:40%;right:2%;font-size:1.2rem;animation-delay:4s;}
+    @keyframes floatY{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-12px) rotate(7deg);}}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes rowIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+    @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+    header{width:100%;max-width:500px;background:var(--white);border:1.5px solid var(--border);
+      border-radius:20px;padding:14px 20px;margin-bottom:14px;
+      box-shadow:0 4px 20px var(--shadow);z-index:1;animation:slideDown 0.5s ease both;}
+    .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+    .site-title{display:flex;align-items:center;gap:9px;font-family:'Zen Maru Gothic',sans-serif;
+      font-size:1rem;font-weight:700;color:var(--sage2);}
+    .title-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--sage),var(--sage2));
+      border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;
+      box-shadow:0 2px 8px rgba(93,145,112,0.35);flex-shrink:0;}
+    .btn-return{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:30px;
+      font-size:0.82rem;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;
+      border:1.5px solid var(--border);background:var(--cream);color:var(--muted);transition:all 0.2s;}
+    .btn-return:hover{background:var(--mint);border-color:var(--sage);color:var(--sage3);transform:translateX(-2px);}
+    .header-info{display:flex;align-items:center;justify-content:space-between;}
+    #clock{font-size:0.8rem;color:var(--muted);font-family:'Zen Maru Gothic',sans-serif;}
+
+    #status-bar{width:100%;max-width:500px;display:flex;align-items:center;gap:7px;margin-bottom:12px;
+      min-height:22px;z-index:1;animation:slideDown 0.5s 0.06s ease both;}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;transition:background 0.3s;}
+    .dot.ok{background:var(--sage);box-shadow:0 0 6px rgba(122,171,138,0.5);}
+    .dot.err{background:var(--danger);}
+    .dot.busy{background:var(--sage);animation:pulse 1.2s infinite;}
+    #status-text{font-size:0.78rem;color:var(--muted);}
+    #last-sync{margin-left:auto;font-size:0.74rem;color:var(--muted);}
+
+    .action-bar{width:100%;max-width:500px;display:flex;gap:12px;margin-bottom:14px;z-index:1;animation:slideDown 0.5s 0.08s ease both;}
+    .btn-action{flex:1;padding:13px;border-radius:14px;font-size:0.95rem;font-weight:700;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;
+      display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;}
+    .btn-action:active{transform:scale(0.97);}
+    .btn-add-item{background:linear-gradient(135deg,var(--sage),var(--sage2));color:#fff;box-shadow:0 4px 14px rgba(93,145,112,0.32);}
+    .btn-add-item:hover{box-shadow:0 6px 20px rgba(93,145,112,0.42);transform:translateY(-2px);}
+    .btn-del-item{background:linear-gradient(135deg,#e07070,var(--danger));color:#fff;box-shadow:0 4px 14px rgba(224,85,85,0.28);}
+    .btn-del-item:hover{box-shadow:0 6px 20px rgba(224,85,85,0.38);transform:translateY(-2px);}
+
+    .search-card{width:100%;max-width:500px;background:var(--white);border:1.5px solid var(--border);
+      border-radius:20px;padding:16px 18px 14px;margin-bottom:14px;
+      box-shadow:0 4px 18px var(--shadow);z-index:1;animation:slideDown 0.5s 0.14s ease both;}
+    .search-label{font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;font-weight:700;
+      color:var(--sage2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+    .search-wrap{position:relative;}
+    .search-icon-pos{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;}
+    .search-input{width:100%;padding:11px 14px 11px 38px;border:1.5px solid var(--border);border-radius:12px;
+      font-size:0.95rem;font-family:'Noto Sans TC',sans-serif;color:var(--ink);background:var(--bg);
+      outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    .search-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,171,138,0.18);background:var(--white);}
+    .search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;
+      cursor:pointer;font-size:1rem;color:var(--muted);display:none;padding:2px;}
+    .search-clear.show{display:block;}
+
+    .list-card{width:100%;max-width:500px;background:var(--white);border:1.5px solid var(--border);
+      border-radius:20px;overflow:hidden;box-shadow:0 6px 24px var(--shadow);z-index:1;animation:slideDown 0.5s 0.18s ease both;}
+    .list-header{background:linear-gradient(135deg,#eef5f0,#e2f0e8);padding:13px 18px;display:flex;
+      align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);}
+    .list-header-title{font-family:'Zen Maru Gothic',sans-serif;font-size:0.9rem;font-weight:700;
+      color:var(--sage2);display:flex;align-items:center;gap:6px;}
+    #list-count{background:linear-gradient(135deg,var(--sage),var(--sage2));color:#fff;font-size:0.72rem;
+      font-weight:700;padding:2px 10px;border-radius:20px;box-shadow:0 2px 6px rgba(93,145,112,0.3);}
+    .item-list{display:flex;flex-direction:column;max-height:55vh;overflow-y:auto;}
+    .item-row{padding:13px 18px;border-bottom:1px solid #e8f0ec;display:flex;align-items:center;gap:12px;
+      transition:background 0.18s;animation:rowIn 0.3s ease both;cursor:pointer;user-select:none;}
+    .item-row:last-child{border-bottom:none;}
+    .item-row:hover{background:#f0f8f3;}
+    .item-row.selected{background:linear-gradient(135deg,#e2f5ea,#d0eedb);border-left:3px solid var(--sage);}
+    .item-seq{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--sage));
+      color:#fff;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .item-name{font-size:0.95rem;font-weight:600;color:var(--ink);flex:1;}
+    mark{background:rgba(122,171,138,0.3);color:var(--sage3);border-radius:3px;padding:0 1px;font-weight:700;}
+    .empty-state{text-align:center;padding:48px 24px;color:var(--muted);}
+    .empty-icon{font-size:2.2rem;display:block;margin-bottom:10px;}
+    .empty-state p{font-size:0.9rem;}
+
+    /* 盤點區 */
+    .inventory-zone{width:100%;max-width:500px;display:none;flex-direction:column;gap:14px;
+      margin-top:14px;z-index:1;animation:slideDown 0.4s ease both;}
+    .inventory-zone.show{display:flex;}
+    .inv-input-card{background:var(--white);border:1.5px solid #a8d4bc;border-radius:20px;
+      padding:16px 18px;box-shadow:0 4px 18px var(--shadow);}
+    .inv-title{font-family:'Zen Maru Gothic',sans-serif;font-size:0.9rem;font-weight:700;
+      color:var(--sage2);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+    .inv-selected-tag{display:inline-flex;align-items:center;gap:6px;
+      background:linear-gradient(135deg,var(--sage),var(--sage2));color:#fff;border-radius:8px;
+      padding:6px 14px;font-size:0.9rem;font-weight:700;margin-bottom:14px;}
+    .inv-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .inv-label{font-size:0.85rem;font-weight:600;color:var(--ink2);white-space:nowrap;min-width:42px;}
+    .inv-time-display{flex:1;background:#eef5f0;border:1.5px solid var(--border);border-radius:10px;
+      padding:9px 12px;font-size:0.82rem;color:var(--muted);font-family:'Zen Maru Gothic',sans-serif;}
+    .inv-qty-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;
+      padding:9px 12px;font-size:0.95rem;font-family:'Noto Sans TC',sans-serif;color:var(--ink);
+      outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    .inv-qty-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,171,138,0.18);background:var(--white);}
+    .inv-qty-hint{font-size:0.75rem;color:var(--muted);margin-top:-6px;}
+    .inv-qty-hint.err{color:var(--danger);font-weight:600;}
+    .btn-inventory{width:100%;padding:13px;border-radius:14px;font-size:1rem;font-weight:700;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;
+      background:linear-gradient(135deg,var(--sky),var(--sky2));color:#fff;
+      box-shadow:0 4px 14px rgba(74,143,170,0.3);display:flex;align-items:center;
+      justify-content:center;gap:8px;transition:all 0.2s;margin-top:6px;}
+    .btn-inventory:hover{box-shadow:0 6px 20px rgba(74,143,170,0.4);transform:translateY(-2px);}
+    .btn-inventory:active{transform:scale(0.97);}
+    .btn-inventory:disabled{opacity:0.55;cursor:not-allowed;transform:none;}
+    .inv-msg{font-size:0.82rem;padding:8px 12px;border-radius:8px;display:none;}
+    .inv-msg.show{display:block;}
+    .inv-msg.ok{background:#e8f5ec;color:var(--sage2);border:1px solid var(--mint);}
+    .inv-msg.err{background:#fde8e8;color:var(--danger);border:1px solid #f5c5c5;}
+
+    /* 盤點記錄卡 */
+    .inv-record-card{background:var(--white);border:1.5px solid #a8c8d8;border-radius:20px;
+      overflow:hidden;box-shadow:0 4px 18px var(--shadow);}
+    .inv-record-header{background:linear-gradient(135deg,#e8f4f8,#d8ecf4);padding:12px 18px;
+      font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;font-weight:700;color:var(--sky2);
+      display:flex;align-items:center;gap:7px;border-bottom:1.5px solid #c0d8e4;}
+    .inv-record-body{padding:16px 18px;display:flex;flex-direction:column;gap:10px;}
+    .inv-record-item-name{font-size:1rem;font-weight:700;color:var(--ink);padding:8px 12px;
+      background:#f0f8f3;border-radius:10px;border-left:3px solid var(--sage);}
+    .inv-slots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+    .inv-slot{border-radius:12px;padding:10px;border:1.5px solid var(--border);background:#fafcfa;
+      display:flex;flex-direction:column;gap:4px;position:relative;}
+    .inv-slot.has-data{background:linear-gradient(135deg,#eef8f2,#e4f4ea);border-color:#a8d4bc;}
+    .inv-slot.current{border-color:var(--sky);box-shadow:0 0 0 2px rgba(106,173,204,0.25);}
+    .slot-label{font-size:0.68rem;font-weight:700;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;}
+    .inv-slot.has-data .slot-label{color:var(--sage2);}
+    .inv-slot.current .slot-label{color:var(--sky2);}
+    .slot-qty{font-size:1.1rem;font-weight:700;color:var(--ink);line-height:1;}
+    .slot-qty.empty{color:var(--muted);font-weight:400;font-size:0.85rem;}
+    .slot-time{font-size:0.68rem;color:var(--muted);font-family:'Zen Maru Gothic',sans-serif;line-height:1.3;}
+    .slot-badge{position:absolute;top:6px;right:6px;width:16px;height:16px;background:var(--sky);
+      color:#fff;border-radius:50%;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+    /* ── 日期篩選卡 ── */
+    .date-filter-card{width:100%;max-width:500px;background:var(--white);border:1.5px solid var(--border);
+      border-radius:20px;padding:16px 18px;box-shadow:0 4px 18px var(--shadow);
+      z-index:1;margin-top:14px;animation:slideDown 0.5s 0.20s ease both;}
+    .date-filter-title{font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;font-weight:700;
+      color:var(--sage2);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+    .date-filter-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px;}
+    .date-field{display:flex;flex-direction:column;gap:5px;flex:1;}
+    .date-label{font-size:0.76rem;font-weight:600;color:var(--ink2);}
+    .date-input{width:100%;padding:9px 10px;border:1.5px solid var(--border);border-radius:10px;
+      font-size:0.88rem;font-family:'Noto Sans TC',sans-serif;color:var(--ink);background:var(--bg);
+      outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    .date-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,171,138,0.18);background:var(--white);}
+    .date-sep{font-size:1rem;color:var(--muted);font-weight:600;padding-bottom:8px;flex-shrink:0;}
+    .date-filter-actions{display:flex;gap:8px;}
+    .btn-date-search{flex:1;padding:10px;border-radius:12px;font-size:0.9rem;font-weight:700;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;
+      background:linear-gradient(135deg,var(--sage),var(--sage2));color:#fff;
+      box-shadow:0 3px 10px rgba(93,145,112,0.28);transition:all 0.2s;}
+    .btn-date-search:hover{box-shadow:0 5px 16px rgba(93,145,112,0.38);transform:translateY(-1px);}
+    .btn-date-search:active{transform:scale(0.97);}
+    .btn-date-reset{padding:10px 18px;border-radius:12px;font-size:0.9rem;font-weight:700;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;background:var(--bg);color:var(--muted);
+      border:1.5px solid var(--border);transition:all 0.2s;}
+    .btn-date-reset:hover{background:var(--mint);color:var(--sage3);border-color:var(--sage);}
+    .date-filter-hint{font-size:0.78rem;color:var(--sage2);font-weight:600;margin-top:10px;min-height:18px;}
+
+    /* 文具登記記錄卡 */
+    .order-records-card{width:100%;max-width:500px;background:var(--white);border:1.5px solid var(--border);
+      border-radius:20px;overflow:hidden;box-shadow:0 6px 24px var(--shadow);
+      z-index:1;margin-top:14px;animation:slideDown 0.5s 0.22s ease both;}
+    .order-records-header{background:linear-gradient(135deg,#eef5f0,#e2f0e8);padding:13px 18px;
+      display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);}
+    .order-records-title{font-family:'Zen Maru Gothic',sans-serif;font-size:0.9rem;font-weight:700;
+      color:var(--sage2);display:flex;align-items:center;gap:6px;}
+    #order-count{background:linear-gradient(135deg,var(--sage),var(--sage2));color:#fff;font-size:0.72rem;
+      font-weight:700;padding:2px 10px;border-radius:20px;box-shadow:0 2px 6px rgba(93,145,112,0.3);}
+    .order-records-body{display:flex;flex-direction:column;max-height:50vh;overflow-y:auto;}
+    .order-row{padding:13px 18px;border-bottom:1px solid #e8f0ec;display:flex;flex-direction:column;gap:6px;
+      animation:rowIn 0.3s ease both;transition:background 0.18s;}
+    .order-row:last-child{border-bottom:none;}
+    .order-row:hover{background:#f0f8f3;}
+    .order-row-top{display:flex;align-items:center;gap:10px;}
+    .order-seq{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--sage));
+      color:#fff;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .order-name{font-size:0.95rem;font-weight:700;color:var(--ink);flex:1;}
+    .order-chips{display:flex;flex-wrap:wrap;gap:6px;padding-left:34px;}
+    .order-chip{display:inline-flex;align-items:center;gap:3px;border-radius:7px;padding:3px 10px;
+      font-size:0.78rem;font-weight:500;}
+    .chip-lbl{font-size:0.68rem;opacity:0.65;font-weight:600;}
+    .chip-time{background:#eef2ff;color:#4c6ef5;border:1px solid #c5d0f5;}
+    .chip-item{background:#edf6f0;color:var(--sage2);border:1px solid #c5dece;}
+    .chip-qty{background:#fff4ee;color:var(--warm2);border:1px solid #f0d0b8;}
+    .chip-notes{background:#f8f8f8;color:var(--muted);border:1px solid #e0e0e0;}
+
+    /* Overlay / Modal */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(20,50,30,0.45);
+      backdrop-filter:blur(6px);z-index:200;justify-content:center;align-items:flex-end;}
+    .overlay.active{display:flex;animation:fadeIn 0.25s ease;}
+    .modal{background:var(--white);border:1.5px solid var(--border);border-radius:24px 24px 0 0;
+      padding:24px 22px 32px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto;
+      display:flex;flex-direction:column;gap:14px;box-shadow:0 -10px 40px rgba(30,80,50,0.15);
+      animation:slideUp 0.35s cubic-bezier(0.34,1.4,0.64,1) both;}
+    .drag-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto -4px;}
+    .modal-head{display:flex;align-items:center;gap:12px;}
+    .modal-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+    .modal-icon.add-i{background:linear-gradient(135deg,#d8f0e0,#b8e0c8);}
+    .modal-icon.del-i{background:linear-gradient(135deg,#fde0e0,#f5c5c5);}
+    .modal h2{font-family:'Zen Maru Gothic',sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink);line-height:1.3;}
+    .modal .subtitle{font-size:0.76rem;color:var(--muted);margin-top:3px;}
+    .field{display:flex;flex-direction:column;gap:6px;}
+    .field label{font-size:0.82rem;font-weight:600;color:var(--ink2);}
+    .modal-input{background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--ink);
+      font-family:'Noto Sans TC',sans-serif;font-size:0.95rem;padding:11px 14px;width:100%;
+      outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    .modal-input:focus{border-color:var(--sage);box-shadow:0 0 0 3px rgba(122,171,138,0.18);background:var(--white);}
+    .modal-msg{font-size:0.82rem;padding:8px 12px;border-radius:8px;display:none;}
+    .modal-msg.show{display:block;}
+    .modal-msg.ok{background:#e8f5ec;color:var(--sage2);border:1px solid var(--mint);}
+    .modal-msg.err{background:#fde8e8;color:var(--danger);border:1px solid #f5c5c5;}
+    .modal-actions{display:flex;flex-direction:column;gap:9px;margin-top:2px;}
+    .btn-modal-submit{width:100%;padding:13px;border-radius:12px;font-size:0.95rem;font-weight:700;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:none;transition:all 0.2s;color:#fff;}
+    .btn-modal-submit:active{transform:scale(0.97);}
+    .btn-modal-submit.green{background:linear-gradient(135deg,var(--sage),var(--sage2));box-shadow:0 3px 12px rgba(93,145,112,0.3);}
+    .btn-modal-submit.red{background:linear-gradient(135deg,#e07070,var(--danger));box-shadow:0 3px 12px rgba(224,85,85,0.3);}
+    .btn-modal-cancel{width:100%;padding:12px;border-radius:12px;background:var(--bg);color:var(--muted);
+      border:1.5px solid var(--border);font-weight:600;font-size:0.9rem;
+      font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:background 0.2s;}
+    .btn-modal-cancel:hover{background:var(--mint);color:var(--sage3);}
+  </style>
+</head>
+<body>
+<div class="deco">✏️</div><div class="deco">📎</div><div class="deco">🌿</div>
+<div class="deco">📝</div><div class="deco">🌱</div>
+
+<header>
+  <div class="header-top">
+    <div class="site-title"><div class="title-icon">📋</div>義大社工科｜文具資料庫</div>
+    <button class="btn-return" onclick="window.location.href='deleloper.html'">← 返回</button>
+  </div>
+  <div class="header-info"><span id="clock">載入中…</span></div>
+</header>
+
+<div id="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">連線中…</span>
+  <span id="last-sync"></span>
+</div>
+
+<div class="action-bar">
+  <button class="btn-action btn-add-item" onclick="openModal('add')">＋ 新增文具</button>
+  <button class="btn-action btn-del-item" onclick="openModal('del')">－ 刪除文具</button>
+</div>
+
+<div class="search-card">
+  <div class="search-label">🔍 搜尋文具</div>
+  <div class="search-wrap">
+    <span class="search-icon-pos">🔍</span>
+    <input type="text" class="search-input" id="search-input" placeholder="輸入關鍵字篩選文具…" autocomplete="off"/>
+    <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+  </div>
+</div>
+
+<div class="list-card">
+  <div class="list-header">
+    <div class="list-header-title">📦 文具列表 <span style="font-size:0.75rem;font-weight:400;color:var(--muted)">（點選文具進行盤點）</span></div>
+    <span id="list-count" style="display:none"></span>
+  </div>
+  <div class="item-list" id="item-list">
+    <div class="empty-state"><span class="empty-icon">🌱</span><p>載入中，請稍候…</p></div>
+  </div>
+</div>
+
+<div class="inventory-zone" id="inventory-zone">
+  <div class="inv-input-card">
+    <div class="inv-title">📊 盤點輸入</div>
+    <div class="inv-selected-tag" id="inv-selected-name">—</div>
+    <div class="inv-row">
+      <span class="inv-label">📅 時間</span>
+      <div class="inv-time-display" id="inv-time-display">—</div>
+    </div>
+    <div class="inv-row">
+      <span class="inv-label">🔢 數量</span>
+      <input type="text" class="inv-qty-input" id="inv-qty" placeholder="請輸入數量" maxlength="6" inputmode="numeric"/>
+    </div>
+    <div class="inv-qty-hint" id="inv-qty-hint">僅限輸入正整數</div>
+    <div class="inv-msg" id="inv-msg"></div>
+    <button class="btn-inventory" id="btn-inventory" onclick="submitInventory()">📋 確認盤點</button>
+  </div>
+  <div class="inv-record-card" id="inv-record-card" style="display:none">
+    <div class="inv-record-header">📈 盤點記錄</div>
+    <div class="inv-record-body">
+      <div class="inv-record-item-name" id="record-item-name">—</div>
+      <div class="inv-slots" id="inv-slots"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 日期篩選卡 -->
+<div class="date-filter-card">
+  <div class="date-filter-title">📅 依日期查詢登記記錄</div>
+  <div class="date-filter-row">
+    <div class="date-field">
+      <label class="date-label">開始日期</label>
+      <input type="date" class="date-input" id="date-from"/>
+    </div>
+    <span class="date-sep">～</span>
+    <div class="date-field">
+      <label class="date-label">結束日期</label>
+      <input type="date" class="date-input" id="date-to"/>
+    </div>
+  </div>
+  <div class="date-filter-actions">
+    <button class="btn-date-search" onclick="applyDateFilter()">🔍 查詢</button>
+    <button class="btn-date-reset"  onclick="resetDateFilter()">✕ 清除</button>
+  </div>
+  <div class="date-filter-hint" id="date-filter-hint"></div>
+</div>
+
+<!-- 文具登記記錄 -->
+<div class="order-records-card">
+  <div class="order-records-header">
+    <div class="order-records-title">📝 文具登記記錄</div>
+    <span id="order-count" style="display:none"></span>
+  </div>
+  <div class="order-records-body" id="order-records-body">
+    <div class="empty-state"><span class="empty-icon">📭</span><p>載入中，請稍候…</p></div>
+  </div>
+</div>
+
+<div class="overlay" id="add-overlay">
+  <div class="modal">
+    <div class="drag-handle"></div>
+    <div class="modal-head">
+      <div class="modal-icon add-i">✏️</div>
+      <div><h2>新增文具</h2><p class="subtitle">輸入文具名稱後按送出，即可新增至資料庫</p></div>
+    </div>
+    <div class="field">
+      <label>文具名稱 <span style="color:var(--danger)">*</span></label>
+      <input type="text" class="modal-input" id="add-name" placeholder="例如：原子筆、便利貼、筆記本" maxlength="30" autocomplete="off"/>
+    </div>
+    <div class="modal-msg" id="add-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-submit green" onclick="submitAdd()">✅ 確認新增</button>
+      <button class="btn-modal-cancel" onclick="closeModal('add-overlay')">取消返回</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="del-overlay">
+  <div class="modal">
+    <div class="drag-handle"></div>
+    <div class="modal-head">
+      <div class="modal-icon del-i">🗑</div>
+      <div><h2>刪除文具</h2><p class="subtitle">輸入文具名稱後按送出，即可從資料庫刪除</p></div>
+    </div>
+    <div class="field">
+      <label>文具名稱 <span style="color:var(--danger)">*</span></label>
+      <input type="text" class="modal-input" id="del-name" placeholder="請輸入要刪除的文具名稱" maxlength="30" autocomplete="off"/>
+    </div>
+    <div class="modal-msg" id="del-msg"></div>
+    <div class="modal-actions">
+      <button class="btn-modal-submit red" onclick="submitDel()">🗑 確認刪除</button>
+      <button class="btn-modal-cancel" onclick="closeModal('del-overlay')">取消返回</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyACtMKVngQdstQIvWwhxhG5AdvCZElmCdKvW8kQLWguHxLCWESDlVPjm13Ae_lEgDd/exec';
+  const POLL_MS = 5000;
+  let allItems = [], searchKw = '', selectedItem = '', currentRecord = null;
+  let allOrderRecords = [], isFiltering = false;
+
+  function updateClock() {
+    const now = new Date();
+    const str = now.toLocaleDateString('zh-TW') + '　' + now.toLocaleTimeString('zh-TW',{hour12:false});
+    document.getElementById('clock').textContent = str;
+    if (selectedItem) document.getElementById('inv-time-display').textContent = str;
+  }
+  setInterval(updateClock, 1000); updateClock();
+
+  function setStatus(s,m){document.getElementById('dot').className='dot '+s;document.getElementById('status-text').textContent=m;}
+  function esc(s){return(s??'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  function fuzzyMatch(item,kw){if(!kw)return true;const il=item.toLowerCase(),kl=kw.toLowerCase();if(il.includes(kl))return true;let idx=0;for(const ch of kl){const f=il.indexOf(ch,idx);if(f===-1)return false;idx=f+1;}return true;}
+  function relevanceScore(item,kw){const il=item.toLowerCase(),kl=kw.toLowerCase();if(il===kl)return 100;if(il.startsWith(kl))return 90;if(il.includes(kl))return 80;return 60;}
+
+  function renderList(items,kw){
+    const list=document.getElementById('item-list'),count=document.getElementById('list-count');
+    list.innerHTML='';
+    if(!items||!items.length){list.innerHTML=`<div class="empty-state"><span class="empty-icon">${kw?'😅':'📭'}</span><p>${kw?`找不到「${esc(kw)}」相關文具`:'目前資料庫沒有文具，請新增'}</p></div>`;count.style.display='none';return;}
+    count.style.display='inline-block';count.textContent=`共 ${items.length} 項`;
+    items.forEach((item,i)=>{
+      const div=document.createElement('div');div.className='item-row'+(item===selectedItem?' selected':'');div.style.animationDelay=(i*0.035)+'s';
+      let dn=esc(item);if(kw){const rx=new RegExp(`(${kw.split('').map(c=>c.replace(/[.*+?^${}()|[\]\\]/g,'\\')).join('|')})`, 'g');dn=dn.replace(rx,'<mark>$1</mark>');}
+      div.innerHTML=`<span class="item-seq">${i+1}</span><span class="item-name">${dn}</span>`;
+      div.addEventListener('click',()=>selectItem(item));list.appendChild(div);
+    });
+  }
+
+  async function selectItem(name){
+    selectedItem=name;
+    document.getElementById('inv-selected-name').textContent=name;
+    document.getElementById('record-item-name').textContent=name;
+    document.getElementById('inv-qty').value='';
+    document.getElementById('inv-msg').className='inv-msg';
+    document.getElementById('inv-qty-hint').className='inv-qty-hint';
+    document.getElementById('inv-qty-hint').textContent='僅限輸入正整數';
+    const zone=document.getElementById('inventory-zone');zone.classList.add('show');
+    zone.scrollIntoView({behavior:'smooth',block:'nearest'});
+    applySearch();await loadRecord(name);
+  }
+
+  async function loadRecord(name){
+    try{const res=await fetch(`${GAS_URL}?action=getInventory&name=${encodeURIComponent(name)}`,{cache:'no-store'});const json=await res.json();currentRecord=json.data||{t1:'',q1:'',t2:'',q2:'',t3:'',q3:''};}
+    catch{currentRecord={t1:'',q1:'',t2:'',q2:'',t3:'',q3:''};}renderRecord();
+  }
+
+  function renderRecord(){
+    const card=document.getElementById('inv-record-card'),slots=document.getElementById('inv-slots'),r=currentRecord;
+    const hasAny=r.t1||r.t2||r.t3;card.style.display=hasAny?'block':'none';if(!hasAny)return;
+    const nextSlot=getNextSlot(r);slots.innerHTML='';
+    [1,2,3].forEach(n=>{const t=r[`t${n}`],q=r[`q${n}`],hasData=!!t,isCurrent=(n===nextSlot);
+      const div=document.createElement('div');div.className='inv-slot'+(hasData?' has-data':'')+(isCurrent?' current':'');
+      div.innerHTML=`<div class="slot-label">記錄 ${n}</div><div class="slot-qty ${hasData?'':'empty'}">${hasData?esc(q):'—'}</div><div class="slot-time">${hasData?formatTime(t):'尚未記錄'}</div>${isCurrent?'<div class="slot-badge">▶</div>':''}`;
+      slots.appendChild(div);});
+  }
+
+  function getNextSlot(r){
+    if(!r.t1)return 1;if(!r.t2)return 2;if(!r.t3)return 3;
+    const times=[{slot:1,t:new Date(r.t1.replace(/\//g,'-'))},{slot:2,t:new Date(r.t2.replace(/\//g,'-'))},{slot:3,t:new Date(r.t3.replace(/\//g,'-'))}];
+    times.sort((a,b)=>a.t-b.t);return times[0].slot;
+  }
+
+  function formatTime(raw){if(!raw)return'—';const d=new Date(raw.replace(/\//g,'-'));if(isNaN(d))return raw.slice(0,16);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}\n${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+  function formatDateShort(raw){if(!raw)return'—';const d=new Date(String(raw).replace(/\//g,'-'));if(isNaN(d))return String(raw).slice(0,16);return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+
+  document.getElementById('inv-qty').addEventListener('input',function(){
+    this.value=this.value.replace(/[^0-9]/g,'').slice(0,6);
+    const hint=document.getElementById('inv-qty-hint'),v=parseInt(this.value);
+    if(!this.value){hint.className='inv-qty-hint';hint.textContent='僅限輸入正整數';}
+    else if(v<=0){hint.className='inv-qty-hint err';hint.textContent='⚠ 數量必須大於 0';}
+    else{hint.className='inv-qty-hint';hint.style.color='var(--sage2)';hint.textContent='✓ 格式正確';}
+  });
+
+  async function submitInventory(){
+    const qty=document.getElementById('inv-qty').value.trim(),btn=document.getElementById('btn-inventory');
+    if(!selectedItem){showInvMsg('⚠ 請先點選文具','err');return;}
+    if(!qty||parseInt(qty)<=0){showInvMsg('⚠ 請輸入有效數量','err');return;}
+    btn.disabled=true;showInvMsg('盤點記錄中…','ok');
+    const timestamp=new Date().toLocaleString('zh-TW',{hour12:false}),slot=getNextSlot(currentRecord);
+    try{
+      const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'updateInventory',name:selectedItem,slot,time:timestamp,qty})});
+      const json=await res.json();
+      if(json.status==='ok'){currentRecord[`t${slot}`]=timestamp;currentRecord[`q${slot}`]=qty;renderRecord();document.getElementById('inv-record-card').style.display='block';document.getElementById('inv-qty').value='';document.getElementById('inv-qty-hint').textContent='僅限輸入正整數';showInvMsg(`✅ 已記錄到欄位 ${slot}！`,'ok');}
+      else showInvMsg('⚠ '+(json.message||'記錄失敗'),'err');
+    }catch{showInvMsg('⚠ 連線失敗','err');}finally{btn.disabled=false;}
+  }
+
+  function showInvMsg(text,type){const el=document.getElementById('inv-msg');el.textContent=text;el.className='inv-msg show '+type;}
+
+  let searchTimer=null;
+  document.getElementById('search-input').addEventListener('input',function(){searchKw=this.value.trim();document.getElementById('search-clear').classList.toggle('show',searchKw.length>0);clearTimeout(searchTimer);searchTimer=setTimeout(()=>applySearch(),150);});
+  function applySearch(){if(!searchKw){renderList(allItems,'');return;}const results=allItems.filter(item=>fuzzyMatch(item,searchKw)).map(item=>({item,score:relevanceScore(item,searchKw)})).sort((a,b)=>b.score-a.score).map(r=>r.item);renderList(results,searchKw);}
+  function clearSearch(){document.getElementById('search-input').value='';document.getElementById('search-clear').classList.remove('show');searchKw='';renderList(allItems,'');}
+
+  async function fetchItems(){
+    setStatus('busy','同步中…');
+    try{const res=await fetch(`${GAS_URL}?action=getStationeryDB&query=`,{cache:'no-store'});const json=await res.json();
+      if(json.status==='ok'){allItems=json.data||[];applySearch();setStatus('ok','已同步');document.getElementById('last-sync').textContent='更新 '+new Date().toLocaleTimeString('zh-TW',{hour12:false});}
+      else setStatus('err','讀取失敗');}catch{setStatus('err','連線失敗');}
+  }
+  fetchItems();setInterval(fetchItems,POLL_MS);
+
+  function openModal(type){document.getElementById(type+'-name').value='';document.getElementById(type+'-msg').className='modal-msg';document.getElementById(type+'-overlay').classList.add('active');setTimeout(()=>document.getElementById(type+'-name').focus(),350);}
+  function closeModal(id){document.getElementById(id).classList.remove('active');}
+  function showModalMsg(id,text,type){const el=document.getElementById(id);el.textContent=text;el.className='modal-msg show '+type;}
+
+  async function submitAdd(){const name=document.getElementById('add-name').value.trim();if(!name){showModalMsg('add-msg','⚠ 請輸入文具名稱','err');return;}showModalMsg('add-msg','新增中…','ok');try{const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'addStationeryDB',name})});const json=await res.json();if(json.status==='ok'){showModalMsg('add-msg','✅ 新增成功！','ok');setTimeout(()=>{closeModal('add-overlay');fetchItems();},1000);}else showModalMsg('add-msg','⚠ '+(json.message||'新增失敗'),'err');}catch{showModalMsg('add-msg','⚠ 連線失敗','err');}}
+  async function submitDel(){const name=document.getElementById('del-name').value.trim();if(!name){showModalMsg('del-msg','⚠ 請輸入文具名稱','err');return;}showModalMsg('del-msg','刪除中…','ok');try{const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delStationeryDB',name})});const json=await res.json();if(json.status==='ok'){showModalMsg('del-msg','✅ 刪除成功！','ok');setTimeout(()=>{closeModal('del-overlay');fetchItems();},1000);}else showModalMsg('del-msg','⚠ '+(json.message||'找不到該文具'),'err');}catch{showModalMsg('del-msg','⚠ 連線失敗','err');}}
+  document.querySelectorAll('.overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('active');});});
+
+  /* ── 日期篩選 ── */
+  function applyDateFilter(){
+    const fromVal=document.getElementById('date-from').value;
+    const toVal=document.getElementById('date-to').value;
+    const hint=document.getElementById('date-filter-hint');
+    if(!fromVal&&!toVal){hint.textContent='⚠ 請至少選擇一個日期';hint.style.color='var(--danger)';return;}
+    const from=fromVal?new Date(fromVal+'T00:00:00'):null;
+    const to=toVal?new Date(toVal+'T23:59:59'):null;
+    const filtered=allOrderRecords.filter(r=>{
+      const d=new Date(String(r.time).replace(/\//g,'-'));if(isNaN(d))return false;
+      if(from&&d<from)return false;if(to&&d>to)return false;return true;
+    });
+    isFiltering=true;
+    const label=[(fromVal||'最早'),'～',(toVal||'最新')].join(' ');
+    hint.style.color='var(--sage2)';
+    hint.textContent=filtered.length>0?`📅 ${label}，共 ${filtered.length} 筆`:`📭 ${label} 無登記記錄`;
+    renderOrderRecords(filtered);
+  }
+
+  function resetDateFilter(){
+    document.getElementById('date-from').value='';
+    document.getElementById('date-to').value='';
+    document.getElementById('date-filter-hint').textContent='';
+    isFiltering=false;
+    renderOrderRecords(allOrderRecords);
+  }
+
+  /* ── 文具登記記錄 ── */
+  async function fetchOrderRecords(){
+    try{
+      const res=await fetch(`${GAS_URL}?action=getOrderRecords`,{cache:'no-store'});
+      const json=await res.json();
+      if(json.status==='ok'){
+        allOrderRecords=json.data||[];
+        if(!isFiltering) renderOrderRecords(allOrderRecords);
+        else applyDateFilter();
+      }
+    }catch{}
+  }
+
+  function renderOrderRecords(rows){
+    const body=document.getElementById('order-records-body'),count=document.getElementById('order-count');
+    body.innerHTML='';
+    if(!rows||!rows.length){body.innerHTML=`<div class="empty-state"><span class="empty-icon">📭</span><p>目前尚無文具登記記錄</p></div>`;count.style.display='none';return;}
+    count.style.display='inline-block';count.textContent=`共 ${rows.length} 筆`;
+    [...rows].reverse().forEach((r,i)=>{
+      const div=document.createElement('div');div.className='order-row';div.style.animationDelay=(i*0.04)+'s';
+      const notesChip=r.notes?`<span class="order-chip chip-notes"><span class="chip-lbl">備註</span>${esc(r.notes)}</span>`:'';
+      div.innerHTML=`<div class="order-row-top"><span class="order-seq">${rows.length-i}</span><span class="order-name">${esc(r.name)}</span></div>
+        <div class="order-chips">
+          <span class="order-chip chip-time"><span class="chip-lbl">時間</span>${formatDateShort(r.time)}</span>
+          <span class="order-chip chip-item"><span class="chip-lbl">文具</span>${esc(r.item)}</span>
+          <span class="order-chip chip-qty"><span class="chip-lbl">數量</span>${esc(r.qty)}</span>
+          ${notesChip}
+        </div>`;
+      body.appendChild(div);
+    });
+  }
+
+  fetchOrderRecords();
+  setInterval(fetchOrderRecords,POLL_MS);
+</script>
+</body>
+</html>

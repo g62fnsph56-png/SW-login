@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>義大社工科｜設備記錄</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #eef2f7;
+      --surface: #ffffff;
+      --border:  rgba(0,0,0,0.07);
+      --primary: #667eea;
+      --primary2:#764ba2;
+      --pink:    #f093fb;
+      --pink2:   #f5576c;
+      --text:    #333;
+      --muted:   #6c757d;
+      --light:   #f8f9fa;
+      --radius:  18px;
+      --shadow:  0 8px 32px rgba(102,126,234,0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(102,126,234,0.10) 0%, transparent 45%),
+        radial-gradient(circle at 90% 85%, rgba(118,75,162,0.08) 0%, transparent 40%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 14px 48px;
+      color: var(--text);
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      animation: slideDown 0.45s ease both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .site-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .title-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.35);
+      flex-shrink: 0;
+    }
+
+    .btn-return {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid #e0d0f0;
+      background: #f8f4ff;
+      color: var(--primary2);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-return:hover {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      border-color: transparent;
+      transform: translateX(-2px);
+      box-shadow: 0 3px 10px rgba(102,126,234,0.3);
+    }
+    .btn-return:active { transform: scale(0.96); }
+
+    #clock {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Status bar ── */
+    #status-bar {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+      min-height: 22px;
+      animation: slideDown 0.45s 0.1s ease both;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .dot.ok   { background: #28a745; box-shadow: 0 0 6px rgba(40,167,69,0.5); }
+    .dot.err  { background: var(--pink2); }
+    .dot.busy { background: var(--primary); animation: pulse 1.2s infinite; }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; } 50% { opacity:0.3; }
+    }
+
+    #status-text  { font-size: 0.78rem; color: var(--muted); }
+    #last-sync    { margin-left: auto; font-size: 0.74rem; color: var(--muted); }
+
+    #count-badge {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(102,126,234,0.3);
+    }
+
+    /* ── 記錄卡片容器 ── */
+    .records-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      animation: slideDown 0.45s 0.15s ease both;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #f0f3ff, #e8ecff);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header-title {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary2);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .sync-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ── 記錄列表（直向卡片） ── */
+    .record-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .record-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid #f0f0f5;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: background 0.2s;
+      animation: rowIn 0.3s ease both;
+    }
+    .record-item:last-child { border-bottom: none; }
+    .record-item:hover { background: #f8f6ff; }
+
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 第一行：序號 + 姓名 */
+    .record-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .seq-bubble {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .record-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* 第二行：chips */
+    .record-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 34px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 7px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .chip-label {
+      font-size: 0.68rem;
+      opacity: 0.65;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .chip-date {
+      background: #eef2ff;
+      color: #4c6ef5;
+      border: 1px solid #c5d0f5;
+    }
+    .chip-device {
+      background: linear-gradient(135deg, #f8f0ff, #f0e8ff);
+      color: var(--primary2);
+      border: 1px solid #d8c5f0;
+    }
+
+    /* ── 日期篩選區 ── */
+    .filter-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      animation: slideDown 0.45s 0.12s ease both;
+    }
+
+    .filter-title {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary2);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-select {
+      flex: 1;
+      padding: 9px 28px 9px 10px;
+      border: 1.5px solid #d8d0f0;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: var(--text);
+      background: #f8f4ff;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23764ba2' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    .filter-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-filter {
+      flex: 1;
+      padding: 9px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-filter.search {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(102,126,234,0.25);
+    }
+    .btn-filter.search:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-filter.reset-f {
+      background: #f0f0f8;
+      color: var(--muted);
+      border: 1.5px solid #e0d8f0;
+    }
+    .btn-filter.reset-f:hover { background: #e8e0f8; }
+
+    .filter-hint {
+      font-size: 0.76rem;
+      color: var(--primary2);
+      margin-top: 8px;
+      min-height: 18px;
+      font-weight: 600;
+    }
+
+    /* 空白狀態 */
+    .empty-state {
+      text-align: center;
+      padding: 52px 24px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.4rem; display: block; margin-bottom: 10px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── 設備資料庫區塊 ── */
+    .db-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      margin-top: 18px;
+      animation: slideDown 0.45s 0.2s ease both;
+    }
+
+    .db-header {
+      background: linear-gradient(135deg, #fff0f8, #ffe8f5);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .db-header-title {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #c0396b;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .db-count {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* 設備清單 */
+    .db-list { display: flex; flex-direction: column; }
+
+    .db-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid #f8f0f5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.2s;
+      animation: rowIn 0.3s ease both;
+    }
+    .db-item:last-child { border-bottom: none; }
+    .db-item:hover { background: #fff5fb; }
+
+    .db-item-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .db-item-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .btn-db-del {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid #f5c5d8;
+      background: #fff0f5;
+      color: #c0396b;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-db-del:hover {
+      background: #c0396b;
+      color: #fff;
+      border-color: #c0396b;
+    }
+
+    /* 新增設備表單 */
+    .db-add-form {
+      padding: 14px 18px;
+      border-top: 1.5px dashed #f0d8e8;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: #fffafd;
+    }
+
+    .db-add-icon {
+      font-size: 1.3rem;
+    }
+
+    .db-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1.5px solid #f0c8e0;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .db-input:focus {
+      border-color: #c0396b;
+      box-shadow: 0 0 0 3px rgba(192,57,107,0.12);
+    }
+
+    .btn-db-add {
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(240,93,251,0.25);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-db-add:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-db-add:active { transform: scale(0.96); }
+
+    .db-msg {
+      font-size: 0.76rem;
+      padding: 6px 18px 10px;
+      color: #c0396b;
+      min-height: 24px;
+      background: #fffafd;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<header>
+  <div class="header-top">
+    <div class="site-title">
+      <div class="title-icon">📋</div>
+      義大社工科｜設備記錄
+    </div>
+    <button class="btn-return" onclick="window.location.href='deleloper.html'">← 返回</button>
+  </div>
+  <div id="clock">載入中…</div>
+</header>
+
+<!-- ─── Status bar ─── -->
+<div id="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">連線中…</span>
+  <span id="count-badge" style="display:none"></span>
+  <span id="last-sync"></span>
+</div>
+
+<!-- ─── 日期篩選 ─── -->
+<div class="filter-card">
+  <div class="filter-title">🔍 依日期查詢</div>
+  <div class="filter-row">
+    <select class="filter-select" id="sel-year"><option value="">年</option></select>
+    <select class="filter-select" id="sel-month"><option value="">月</option></select>
+    <select class="filter-select" id="sel-day"><option value="">日</option></select>
+  </div>
+  <div class="filter-actions">
+    <button class="btn-filter search" onclick="applyFilter()">🔍 查詢</button>
+    <button class="btn-filter reset-f" onclick="resetFilter()">✕ 清除</button>
+  </div>
+  <div class="filter-hint" id="filter-hint"></div>
+</div>
+
+<!-- ─── 記錄卡片 ─── -->
+<div class="records-card">
+  <div class="card-header">
+    <div class="card-header-title">🖥 設備借用記錄</div>
+    <span class="sync-hint">每 5 秒自動同步</span>
+  </div>
+  <div class="record-list" id="record-list">
+    <div class="empty-state">
+      <span class="empty-icon">📡</span>
+      <p>載入中，請稍候…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 設備資料庫管理 ─── -->
+<div class="db-card">
+  <div class="db-header">
+    <div class="db-header-title">🗄 設備資料庫</div>
+    <span class="db-count" id="db-count">載入中…</span>
+  </div>
+  <div class="db-list" id="db-list">
+    <div class="empty-state">
+      <span class="empty-icon">📦</span>
+      <p>載入中…</p>
+    </div>
+  </div>
+  <!-- 新增表單 -->
+  <div class="db-add-form">
+    <span class="db-add-icon">➕</span>
+    <input type="text" class="db-input" id="db-input-name" placeholder="輸入設備名稱" maxlength="20" autocomplete="off"/>
+    <button class="btn-db-add" onclick="submitAddDevice()">新增</button>
+  </div>
+  <div class="db-msg" id="db-msg"></div>
+</div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyACtMKVngQdstQIvWwhxhG5AdvCZElmCdKvW8kQLWguHxLCWESDlVPjm13Ae_lEgDd/exec';
+  const POLL_MS = 5000;
+
+  let allData = [];       // 全部資料快取
+  let isFiltered = false; // 是否正在篩選中
+
+  /* ── 時鐘 ── */
+  function updateClock() {
+    const now  = new Date();
+    const date = now.toLocaleDateString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const time = now.toLocaleTimeString('zh-TW', { hour12: false });
+    document.getElementById('clock').textContent = date + '　' + time;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* ── 狀態指示 ── */
+  function setStatus(state, msg) {
+    document.getElementById('dot').className = 'dot ' + state;
+    document.getElementById('status-text').textContent = msg;
+  }
+
+  /* ── 日期格式化 YYYY-MM-DD ── */
+  function formatDate(raw) {
+    if (!raw) return '—';
+    const d = new Date(String(raw).replace(/\//g, '-'));
+    if (!isNaN(d)) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    return String(raw).slice(0, 10);
+  }
+
+  /* 取出 YYYY-MM-DD 字串 */
+  function toYMD(raw) { return formatDate(raw); }
+
+  function esc(s) {
+    return (s ?? '').toString()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── 填充年月日下拉選單 ── */
+  function buildSelectors(rows) {
+    const years  = new Set();
+    const months = new Set();
+    const days   = new Set();
+
+    rows.forEach(r => {
+      const ymd = toYMD(r.time);
+      if (ymd === '—') return;
+      const [y, m, d] = ymd.split('-');
+      if (y) years.add(y);
+      if (m) months.add(m);
+      if (d) days.add(d);
+    });
+
+    fillSelect('sel-year',  [...years].sort(),  '年');
+    fillSelect('sel-month', [...months].sort((a,b)=>+a-+b), '月');
+    fillSelect('sel-day',   [...days].sort((a,b)=>+a-+b),   '日');
+  }
+
+  function fillSelect(id, values, label) {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${label}</option>`;
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = label === '年' ? v + ' 年' :
+                        label === '月' ? (+v) + ' 月' : (+v) + ' 日';
+      sel.appendChild(opt);
+    });
+    if (cur) sel.value = cur; // 保留選擇
+  }
+
+  /* ── 套用篩選 ── */
+  function applyFilter() {
+    const y = document.getElementById('sel-year').value;
+    const m = document.getElementById('sel-month').value;
+    const d = document.getElementById('sel-day').value;
+
+    if (!y && !m && !d) {
+      document.getElementById('filter-hint').textContent = '⚠ 請至少選擇一個條件';
+      return;
+    }
+
+    const filtered = allData.filter(r => {
+      const ymd = toYMD(r.time); // YYYY-MM-DD
+      const [ry, rm, rd] = ymd.split('-');
+      if (y && ry !== y) return false;
+      if (m && rm !== m) return false;
+      if (d && rd !== d) return false;
+      return true;
+    });
+
+    isFiltered = true;
+    const label = [y ? y+'年' : '', m ? (+m)+'月' : '', d ? (+d)+'日' : ''].filter(Boolean).join(' ');
+    document.getElementById('filter-hint').textContent =
+      filtered.length > 0 ? `📅 ${label}，共找到 ${filtered.length} 筆` : `📭 ${label} 無借用記錄`;
+
+    renderList(filtered);
+  }
+
+  /* ── 清除篩選 ── */
+  function resetFilter() {
+    document.getElementById('sel-year').value  = '';
+    document.getElementById('sel-month').value = '';
+    document.getElementById('sel-day').value   = '';
+    document.getElementById('filter-hint').textContent = '';
+    isFiltered = false;
+    renderList(allData);
+  }
+
+  /* ── 渲染記錄 ── */
+  function renderList(rows) {
+    const list  = document.getElementById('record-list');
+    const badge = document.getElementById('count-badge');
+    list.innerHTML = '';
+
+    if (!rows || rows.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <span class="empty-icon">📭</span><p>目前尚無設備借用記錄</p></div>`;
+      badge.style.display = 'none';
+      return;
+    }
+
+    badge.style.display = 'inline-block';
+    badge.textContent = `共 ${rows.length} 筆`;
+
+    rows.forEach((r, i) => {
+      const item = document.createElement('div');
+      item.className = 'record-item';
+      item.style.animationDelay = (i * 0.04) + 's';
+      item.innerHTML = `
+        <div class="record-top">
+          <span class="seq-bubble">${i + 1}</span>
+          <span class="record-name">${esc(r.name)}</span>
+        </div>
+        <div class="record-chips">
+          <span class="chip chip-date">
+            <span class="chip-label">時間</span>${formatDate(r.time)}
+          </span>
+          <span class="chip chip-device">
+            <span class="chip-label">設備</span>${esc(r.devices)}
+          </span>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  /* ── 拉取設備記錄 ── */
+  async function fetchData() {
+    setStatus('busy', '同步中…');
+    try {
+      const res  = await fetch(GAS_URL + '?action=getDevices', { cache: 'no-store' });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        allData = json.data;
+        buildSelectors(allData);     // 填充下拉選單
+        if (!isFiltered) renderList(allData); // 篩選中不自動覆蓋
+        setStatus('ok', '已同步');
+        document.getElementById('last-sync').textContent =
+          '更新 ' + new Date().toLocaleTimeString('zh-TW', { hour12: false });
+      } else {
+        setStatus('err', '讀取失敗：' + (json.message || '未知錯誤'));
+      }
+    } catch {
+      setStatus('err', '連線失敗');
+    }
+  }
+
+  fetchData();
+  setInterval(fetchData, POLL_MS);
+
+  /* ════════════════════════════════
+     設備資料庫 CRUD
+  ════════════════════════════════ */
+
+  let dbData = [];
+
+  /* 渲染設備資料庫清單 */
+  function renderDb(items) {
+    const list = document.getElementById('db-list');
+    const count = document.getElementById('db-count');
+    list.innerHTML = '';
+
+    if (!items || items.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <span class="empty-icon">📦</span><p>目前尚無設備，請新增</p></div>`;
+      count.textContent = '共 0 項';
+      return;
+    }
+
+    count.textContent = `共 ${items.length} 項`;
+    items.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'db-item';
+      div.style.animationDelay = (i * 0.04) + 's';
+      div.innerHTML = `
+        <span class="db-item-icon">${esc(item.icon) || '📦'}</span>
+        <span class="db-item-name">${esc(item.name)}</span>
+        <button class="btn-db-del" onclick="submitDelDevice('${esc(item.name)}')">刪除</button>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  /* 拉取設備資料庫 */
+  async function fetchDb() {
+    try {
+      const res  = await fetch(GAS_URL + '?action=getDeviceDB', { cache: 'no-store' });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        dbData = json.data;
+        renderDb(dbData);
+      }
+    } catch { /* 靜默失敗 */ }
+  }
+
+  /* 新增設備 */
+  async function submitAddDevice() {
+    const name = document.getElementById('db-input-name').value.trim();
+    const msg  = document.getElementById('db-msg');
+
+    if (!name) { msg.textContent = '⚠ 請輸入設備名稱'; return; }
+
+    msg.textContent = '新增中…';
+    try {
+      const res  = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'addDeviceDB', name, icon: '📦' })
+      });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        document.getElementById('db-input-name').value = '';
+        msg.textContent = '✓ 新增成功';
+        setTimeout(() => msg.textContent = '', 2000);
+        fetchDb();
+      } else {
+        msg.textContent = '⚠ ' + (json.message || '新增失敗');
+      }
+    } catch { msg.textContent = '⚠ 連線失敗'; }
+  }
+
+  /* 刪除設備 */
+  async function submitDelDevice(name) {
+    const msg = document.getElementById('db-msg');
+    if (!confirm(`確定要刪除「${name}」嗎？`)) return;
+
+    msg.textContent = '刪除中…';
+    try {
+      const res  = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'delDeviceDB', name })
+      });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        msg.textContent = '✓ 已刪除';
+        setTimeout(() => msg.textContent = '', 2000);
+        fetchDb();
+      } else {
+        msg.textContent = '⚠ ' + (json.message || '刪除失敗');
+      }
+    } catch { msg.textContent = '⚠ 連線失敗'; }
+  }
+
+  fetchDb();
+  setInterval(fetchDb, POLL_MS);
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>後台管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            animation: slideUp 0.8s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        #time {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        #welcome {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .button-group button {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .button-group button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+        .button-group button:active {
+            transform: translateY(-1px);
+        }
+        #members {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        #devices {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        #supplies {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        #meals {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        #return {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            margin-top: 10px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            #welcome {
+                font-size: 1.6em;
+            }
+            .button-group button {
+                padding: 15px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="time"></div>
+        <div id="welcome">科務大大 你好</div>
+        <div class="button-group">
+            <button id="members">會員資料</button>
+            <button id="devices">設備系統</button>
+            <button id="supplies">文具系統</button>
+            <button id="meals">訂餐系統</button>
+            <button id="return">返回</button>
+        </div>
+    </div>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('time').innerText = now.toLocaleString('zh-TW');
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 按鈕點擊事件
+        document.getElementById('members').addEventListener('click', function() {
+            window.location.href = 'de-name.html';
+        });
+
+        document.getElementById('devices').addEventListener('click', function() {
+            window.location.href = 'de-device.html';
+        });
+
+        document.getElementById('supplies').addEventListener('click', function() {
+            window.location.href = 'de-Stationery.html';
+        });
+
+        document.getElementById('meals').addEventListener('click', function() {
+            window.location.href = 'de-meal.html';
+        });
+
+        document.getElementById('return').addEventListener('click', function() {
+            if (confirm('確認要返回主頁嗎？')) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

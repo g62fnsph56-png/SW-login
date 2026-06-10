@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>義大社工科｜會員管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --sand:    #fdf6ec;
+      --cream:   #fef9f3;
+      --warm1:   #f5a469;
+      --warm2:   #e8845a;
+      --warm3:   #d4634a;
+      --sage:    #7aab8a;
+      --sage2:   #5d9170;
+      --sky:     #7fb3d3;
+      --blush:   #f2c4b0;
+      --ink:     #3d2b1f;
+      --ink2:    #6b4c3b;
+      --muted:   #a08070;
+      --border:  #e8d5c4;
+      --white:   #ffffff;
+      --shadow:  rgba(100,60,30,0.10);
+      --radius:  16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--sand);
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(245,164,105,0.12) 0%, transparent 50%),
+        radial-gradient(circle at 85% 80%, rgba(122,171,138,0.10) 0%, transparent 50%);
+      color: var(--ink);
+      font-family: 'Noto Sans TC', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 48px;
+    }
+
+    /* ── 浮動裝飾 ── */
+    .deco {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.12;
+      animation: floatY 6s ease-in-out infinite;
+      z-index: 0;
+    }
+    .deco:nth-child(1) { top: 8%;  left: 3%;  font-size: 1.6rem; animation-delay: 0s;   }
+    .deco:nth-child(2) { top: 22%; right: 4%; font-size: 1.1rem; animation-delay: 1.5s; }
+    .deco:nth-child(3) { top: 55%; left: 2%;  font-size: 0.9rem; animation-delay: 3s;   }
+    .deco:nth-child(4) { top: 72%; right: 3%; font-size: 1.4rem; animation-delay: 2s;   }
+    .deco:nth-child(5) { top: 40%; right: 2%; font-size: 1rem;   animation-delay: 4s;   }
+
+    @keyframes floatY {
+      0%,100% { transform: translateY(0) rotate(0deg); }
+      50%      { transform: translateY(-12px) rotate(8deg); }
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      max-width: 480px;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 20px var(--shadow);
+      position: relative;
+      z-index: 1;
+      animation: slideDown 0.5s ease both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 標題列：圖示＋文字＋返回鍵 同一行 */
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .site-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--warm2);
+    }
+
+    .site-title .icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--warm1), var(--warm3));
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 2px 8px rgba(232,132,90,0.35);
+      flex-shrink: 0;
+    }
+
+    /* 返回按鈕 */
+    .btn-return {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--sand);
+      color: var(--muted);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-return:hover {
+      background: var(--blush);
+      border-color: var(--warm1);
+      color: var(--warm3);
+      transform: translateX(-2px);
+    }
+    .btn-return:active { transform: scale(0.96); }
+
+    /* 時鐘：標題下方獨立一行 */
+    #clock {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-align: center;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── Status bar ── */
+    #status-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+      min-height: 22px;
+      z-index: 1;
+      animation: slideDown 0.5s 0.1s ease both;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.4s;
+    }
+    .dot.ok   { background: var(--sage); box-shadow: 0 0 6px rgba(122,171,138,0.5); }
+    .dot.err  { background: var(--warm3); }
+    .dot.busy { background: var(--sky); animation: pulse 1.2s infinite; }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; box-shadow: 0 0 0 rgba(127,179,211,0); }
+      50%      { opacity:0.4; box-shadow: 0 0 8px rgba(127,179,211,0.6); }
+    }
+
+    #status-text { font-size: 0.78rem; color: var(--muted); }
+    #last-sync { margin-left: auto; font-size: 0.74rem; color: var(--muted); }
+
+    #count-badge {
+      background: linear-gradient(135deg, var(--warm1), var(--warm2));
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(232,132,90,0.3);
+    }
+
+    /* ── Table card ── */
+    .table-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 6px 28px var(--shadow);
+      z-index: 1;
+      animation: slideDown 0.5s 0.15s ease both;
+    }
+
+    .table-header {
+      background: linear-gradient(135deg, #fef0e4 0%, #fde8d4 100%);
+      padding: 13px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .table-header-title {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--warm2);
+    }
+
+    /* 直向：每筆資料用卡片排列，不用橫向 table */
+    .member-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .member-card {
+      padding: 14px 18px;
+      border-bottom: 1px solid #f3e8de;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background 0.2s;
+      animation: rowIn 0.35s ease both;
+    }
+    .member-card:last-child { border-bottom: none; }
+    .member-card:hover { background: #fff8f3; }
+
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 卡片第一行：序號＋姓名 */
+    .card-row-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .num-bubble {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, var(--blush), var(--warm1));
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .member-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* 卡片第二行：帳號＋密碼＋日期 chips */
+    .card-row-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding-left: 34px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .chip-label {
+      font-size: 0.68rem;
+      opacity: 0.7;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .chip-account {
+      background: #edf6f0;
+      color: var(--sage2);
+      border: 1px solid #c5dece;
+    }
+    .chip-pwd {
+      background: #fff4ee;
+      color: var(--ink2);
+      border: 1px solid var(--border);
+      font-family: 'Zen Maru Gothic', monospace;
+      letter-spacing: 0.08em;
+    }
+    .chip-date {
+      background: #f0f5ff;
+      color: var(--sky);
+      border: 1px solid #c5d9ee;
+    }
+
+    /* 空白狀態 */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 2.2rem; display: block; margin-bottom: 10px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── Bottom bar：直向，按鈕全寬堆疊 ── */
+    .bottom-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+      z-index: 1;
+      animation: slideDown 0.5s 0.25s ease both;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 40px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.15);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn:hover::after { opacity: 1; }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--sage), var(--sage2));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(93,145,112,0.35);
+    }
+    .btn-add:hover { box-shadow: 0 6px 22px rgba(93,145,112,0.45); transform: translateY(-2px); }
+
+    .btn-del {
+      background: linear-gradient(135deg, #f07060, var(--warm3));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(212,99,74,0.3);
+    }
+    .btn-del:hover { box-shadow: 0 6px 22px rgba(212,99,74,0.4); transform: translateY(-2px); }
+
+    /* ── Overlay ── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(61,43,31,0.45);
+      backdrop-filter: blur(6px);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .overlay.active {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* ── Modal：從底部滑入 ── */
+    .modal {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      padding: 28px 24px 36px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 -10px 40px rgba(100,60,30,0.15);
+      animation: slideUp 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    /* 拖曳把手 */
+    .drag-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto -4px;
+    }
+
+    .modal-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .modal-icon.add { background: linear-gradient(135deg, #e8f5ec, #c5e0ce); }
+    .modal-icon.del { background: linear-gradient(135deg, #fde8e4, #f5c5bb); }
+
+    /* 圖示＋標題橫向排列 */
+    .modal-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal h2 {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+    .modal .subtitle {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ink2);
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      background: var(--sand);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--ink);
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 0.95rem;
+      padding: 11px 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--warm1);
+      box-shadow: 0 0 0 3px rgba(245,164,105,0.18);
+      background: var(--white);
+    }
+    input.error   { border-color: var(--warm3); box-shadow: 0 0 0 3px rgba(212,99,74,0.15); }
+    input.ok-field { border-color: var(--sage);  box-shadow: 0 0 0 3px rgba(122,171,138,0.18); }
+
+    .field-hint { font-size: 0.74rem; color: var(--muted); }
+    .field-hint.err { color: var(--warm3); font-weight: 600; }
+    .field-hint.ok  { color: var(--sage2); }
+
+    .modal-msg {
+      font-size: 0.82rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: none;
+    }
+    .modal-msg.show { display: block; }
+    .modal-msg.err  { background: #fde8e4; color: var(--warm3); border: 1px solid #f5c5bb; }
+    .modal-msg.info { background: #edf6f0; color: var(--sage2); border: 1px solid #c5dece; }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 1rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-submit:active { transform: scale(0.97); }
+    .btn-submit.green {
+      background: linear-gradient(135deg, var(--sage), var(--sage2));
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(93,145,112,0.3);
+    }
+    .btn-submit.red {
+      background: linear-gradient(135deg, #f07060, var(--warm3));
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(212,99,74,0.3);
+    }
+    .btn-cancel {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      background: var(--sand);
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      font-weight: 600;
+      font-size: 0.95rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-cancel:hover { background: var(--cream); }
+  </style>
+</head>
+<body>
+
+<div class="deco">🌸</div>
+<div class="deco">🌿</div>
+<div class="deco">✿</div>
+<div class="deco">🍃</div>
+<div class="deco">🌼</div>
+
+<!-- ─── Header ─── -->
+<header>
+  <div class="header-top">
+    <div class="site-title">
+      <div class="icon">👥</div>
+      義大社工科｜會員管理
+    </div>
+    <button class="btn-return" onclick="window.location.href='deleloper.html'">← 返回</button>
+  </div>
+  <div id="clock">載入中…</div>
+</header>
+
+<!-- ─── Status bar ─── -->
+<div id="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">連線中…</span>
+  <span id="count-badge" style="display:none"></span>
+  <span id="last-sync"></span>
+</div>
+
+<!-- ─── 會員卡片清單 ─── -->
+<div class="table-card">
+  <div class="table-header">
+    <div class="table-header-title">🗂 會員名單</div>
+    <span style="font-size:0.75rem;color:var(--muted)">每 5 秒自動同步</span>
+  </div>
+  <div class="member-list" id="member-list">
+    <div class="empty-state">
+      <span class="empty-icon">🌱</span>
+      <p>載入中，請稍候…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Bottom bar ─── -->
+<div class="bottom-bar">
+  <button class="btn btn-add" onclick="openAdd()">＋ 新增會員</button>
+  <button class="btn btn-del" onclick="openDel()">－ 刪除會員</button>
+</div>
+
+<!-- ─── 新增 Modal ─── -->
+<div class="overlay" id="add-overlay">
+  <div class="modal">
+    <div class="drag-handle"></div>
+    <div class="modal-head">
+      <div class="modal-icon add">🌱</div>
+      <div>
+        <h2>新增會員</h2>
+        <p class="subtitle">請填寫以下資料以完成新增</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>姓名 <span style="color:var(--warm3)">*</span></label>
+      <input type="text" id="add-name" placeholder="請輸入中文姓名" maxlength="10"
+             oninput="validateName(this)" autocomplete="off"/>
+      <span class="field-hint" id="hint-name">僅限中文字，不可含英文或數字</span>
+    </div>
+
+    <div class="field">
+      <label>帳號 <span style="color:var(--warm3)">*</span></label>
+      <input type="text" id="add-account" placeholder="請輸入帳號" maxlength="20" autocomplete="off"/>
+    </div>
+
+    <div class="field">
+      <label>密碼 <span style="color:var(--warm3)">*</span></label>
+      <input type="text" id="add-password" placeholder="請輸入 6 位數字" maxlength="6"
+             oninput="validatePwd(this)" autocomplete="off" inputmode="numeric"/>
+      <span class="field-hint" id="hint-pwd">須為 6 位數字（例：123456）</span>
+    </div>
+
+    <div class="modal-msg" id="add-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-submit green" onclick="submitAdd()">確認新增</button>
+      <button class="btn-cancel" onclick="closeModal('add-overlay')">取消返回</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── 刪除 Modal ─── -->
+<div class="overlay" id="del-overlay">
+  <div class="modal">
+    <div class="drag-handle"></div>
+    <div class="modal-head">
+      <div class="modal-icon del">🗑</div>
+      <div>
+        <h2>刪除會員</h2>
+        <p class="subtitle">輸入帳號後將永久刪除該筆資料</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>帳號 <span style="color:var(--warm3)">*</span></label>
+      <input type="text" id="del-account" placeholder="請輸入要刪除的帳號" autocomplete="off"/>
+    </div>
+
+    <div class="modal-msg" id="del-msg"></div>
+
+    <div class="modal-actions">
+      <button class="btn-submit red" onclick="submitDel()">確認刪除</button>
+      <button class="btn-cancel" onclick="closeModal('del-overlay')">取消返回</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyACtMKVngQdstQIvWwhxhG5AdvCZElmCdKvW8kQLWguHxLCWESDlVPjm13Ae_lEgDd/exec';
+  const POLL_MS = 5000;
+
+  /* ── 時鐘 ── */
+  function updateClock() {
+    const now  = new Date();
+    const date = now.toLocaleDateString('zh-TW', { year:'numeric', month:'2-digit', day:'2-digit' });
+    const time = now.toLocaleTimeString('zh-TW', { hour12: false });
+    document.getElementById('clock').textContent = date + '　' + time;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* ── 狀態 ── */
+  function setStatus(state, msg) {
+    document.getElementById('dot').className = 'dot ' + state;
+    document.getElementById('status-text').textContent = msg;
+  }
+
+  /* ── 日期格式 YYYY-MM-DD ── */
+  function formatDate(raw) {
+    if (!raw) return '—';
+    const d = new Date(String(raw).replace(/\//g, '-'));
+    if (!isNaN(d)) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    return String(raw).slice(0, 10);
+  }
+
+  function esc(s) {
+    return (s ?? '').toString()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  /* ── 渲染卡片清單（直向） ── */
+  function renderList(rows) {
+    const list  = document.getElementById('member-list');
+    const badge = document.getElementById('count-badge');
+    list.innerHTML = '';
+
+    if (!rows || rows.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <span class="empty-icon">🌱</span><p>目前尚無會員資料</p></div>`;
+      badge.style.display = 'none';
+      return;
+    }
+
+    badge.style.display = 'inline-block';
+    badge.textContent = `共 ${rows.length} 位`;
+
+    rows.forEach((r, i) => {
+      const card = document.createElement('div');
+      card.className = 'member-card';
+      card.style.animationDelay = (i * 0.05) + 's';
+      card.innerHTML = `
+        <div class="card-row-top">
+          <span class="num-bubble">${i + 1}</span>
+          <span class="member-name">${esc(r.name)}</span>
+        </div>
+        <div class="card-row-chips">
+          <span class="chip chip-account"><span class="chip-label">帳號</span>${esc(r.account)}</span>
+          <span class="chip chip-pwd"><span class="chip-label">密碼</span>${esc(r.password)}</span>
+          <span class="chip chip-date"><span class="chip-label">日期</span>${formatDate(r.time)}</span>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  /* ── 拉取資料 ── */
+  async function fetchData() {
+    setStatus('busy', '同步中…');
+    try {
+      const res  = await fetch(GAS_URL + '?action=getMembers', { cache: 'no-store' });
+      const json = await res.json();
+      if (json.status === 'ok') {
+        renderList(json.data);
+        setStatus('ok', '已同步');
+        document.getElementById('last-sync').textContent =
+          '更新 ' + new Date().toLocaleTimeString('zh-TW', { hour12: false });
+      } else {
+        setStatus('err', '讀取失敗');
+      }
+    } catch {
+      setStatus('err', '連線失敗');
+    }
+  }
+  fetchData();
+  setInterval(fetchData, POLL_MS);
+
+  /* ── 驗證 ── */
+  function validateName(input) {
+    const v = input.value;
+    const hint = document.getElementById('hint-name');
+    if (!v) {
+      input.className = ''; hint.className = 'field-hint';
+      hint.textContent = '僅限中文字，不可含英文或數字';
+    } else if (/^[\u4e00-\u9fff\u3400-\u4dbf]+$/.test(v)) {
+      input.className = 'ok-field'; hint.className = 'field-hint ok';
+      hint.textContent = '✓ 格式正確';
+    } else {
+      input.className = 'error'; hint.className = 'field-hint err';
+      hint.textContent = '⚠ 只能輸入中文字';
+    }
+  }
+
+  function validatePwd(input) {
+    input.value = input.value.replace(/\D/g,'').slice(0,6);
+    const v = input.value;
+    const hint = document.getElementById('hint-pwd');
+    if (!v) {
+      input.className = ''; hint.className = 'field-hint';
+      hint.textContent = '須為 6 位數字（例：123456）';
+    } else if (v.length === 6) {
+      input.className = 'ok-field'; hint.className = 'field-hint ok';
+      hint.textContent = '✓ 格式正確';
+    } else {
+      input.className = 'error'; hint.className = 'field-hint err';
+      hint.textContent = `⚠ 已輸入 ${v.length} 位，還需 ${6-v.length} 位`;
+    }
+  }
+
+  /* ── Modal 訊息 ── */
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'modal-msg show ' + type;
+  }
+
+  /* ── Modal 開關 ── */
+  function openAdd() {
+    ['add-name','add-account','add-password'].forEach(id => {
+      const el = document.getElementById(id);
+      el.value = ''; el.className = '';
+    });
+    document.getElementById('hint-name').className = 'field-hint';
+    document.getElementById('hint-name').textContent = '僅限中文字，不可含英文或數字';
+    document.getElementById('hint-pwd').className = 'field-hint';
+    document.getElementById('hint-pwd').textContent = '須為 6 位數字（例：123456）';
+    document.getElementById('add-msg').className = 'modal-msg';
+    document.getElementById('add-overlay').classList.add('active');
+  }
+
+  function openDel() {
+    document.getElementById('del-account').value = '';
+    document.getElementById('del-msg').className = 'modal-msg';
+    document.getElementById('del-overlay').classList.add('active');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  /* ── 新增 ── */
+  async function submitAdd() {
+    const name     = document.getElementById('add-name').value.trim();
+    const account  = document.getElementById('add-account').value.trim();
+    const password = document.getElementById('add-password').value.trim();
+
+    if (!name || !account || !password) { showMsg('add-msg','⚠ 請填寫所有欄位','err'); return; }
+    if (!/^[\u4e00-\u9fff\u3400-\u4dbf]+$/.test(name)) { showMsg('add-msg','⚠ 姓名只能輸入中文字','err'); return; }
+    if (!/^\d{6}$/.test(password)) { showMsg('add-msg','⚠ 密碼須為 6 位數字','err'); return; }
+
+    showMsg('add-msg','送出中…','info');
+    const time = new Date().toLocaleString('zh-TW', { hour12: false });
+
+    try {
+      const res  = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action:'addMember', name, account, password, time })
+      });
+      const json = await res.json();
+      if (json.status === 'ok') { closeModal('add-overlay'); fetchData(); }
+      else showMsg('add-msg','⚠ ' + (json.message || '新增失敗'),'err');
+    } catch { showMsg('add-msg','⚠ 連線失敗','err'); }
+  }
+
+  /* ── 刪除 ── */
+  async function submitDel() {
+    const account = document.getElementById('del-account').value.trim();
+    if (!account) { showMsg('del-msg','⚠ 請輸入帳號','err'); return; }
+
+    showMsg('del-msg','處理中…','info');
+    try {
+      const res  = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action:'deleteMember', account })
+      });
+      const json = await res.json();
+      if (json.status === 'ok') { closeModal('del-overlay'); fetchData(); }
+      else showMsg('del-msg','⚠ ' + (json.message || '找不到該帳號'),'err');
+    } catch { showMsg('del-msg','⚠ 連線失敗','err'); }
+  }
+
+  /* ── 點背景關閉 ── */
+  document.querySelectorAll('.overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>設備預約系統</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #eef2f7;
+      --surface:  #ffffff;
+      --primary:  #667eea;
+      --primary2: #764ba2;
+      --accent:   #f093fb;
+      --accent2:  #f5576c;
+      --success:  #28a745;
+      --ink:      #2c3e50;
+      --ink2:     #5a6a7a;
+      --muted:    #8e9eb0;
+      --border:   #e2e8f0;
+      --shadow:   rgba(102,126,234,0.10);
+      --radius:   18px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 18px;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(102,126,234,0.12) 0%, transparent 45%),
+        radial-gradient(circle at 88% 82%, rgba(118,75,162,0.10) 0%, transparent 42%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 14px 56px;
+      color: var(--ink);
+    }
+
+    /* ── 浮動裝飾 ── */
+    .deco {
+      position: fixed; pointer-events: none;
+      opacity: 0.07; z-index: 0;
+      animation: floatY 7s ease-in-out infinite;
+    }
+    .deco:nth-child(1){ top:6%;  left:3%;  font-size:1.8rem; animation-delay:0s;   }
+    .deco:nth-child(2){ top:22%; right:4%; font-size:1.1rem; animation-delay:2s;   }
+    .deco:nth-child(3){ top:55%; left:2%;  font-size:1rem;   animation-delay:3.5s; }
+    .deco:nth-child(4){ top:73%; right:3%; font-size:1.5rem; animation-delay:1.5s; }
+    @keyframes floatY {
+      0%,100%{ transform:translateY(0) rotate(0deg); }
+      50%    { transform:translateY(-12px) rotate(6deg); }
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%; max-width: 520px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 22px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 24px var(--shadow);
+      z-index: 1;
+      animation: slideDown 0.5s ease both;
+    }
+    @keyframes slideDown {
+      from{ opacity:0; transform:translateY(-16px); }
+      to  { opacity:1; transform:translateY(0); }
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    /* 使用者資訊 */
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.35);
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--ink);
+    }
+
+    .user-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* 返回按鈕 */
+    .btn-return {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 16px;
+      border-radius: 30px;
+      font-size: 0.82rem; font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: #f0f4ff;
+      color: var(--muted);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-return:hover {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff; border-color: transparent;
+      transform: translateX(-2px);
+      box-shadow: 0 3px 10px var(--shadow);
+    }
+
+    /* 時間列 */
+    .time-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .time-display {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 0.95rem;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+    }
+
+    /* 說明文字 */
+    .intro-card {
+      width: 100%; max-width: 520px;
+      background: linear-gradient(135deg, #eef1ff, #e8ecff);
+      border: 1.5px solid #d0d8ff;
+      border-radius: 14px;
+      padding: 13px 18px;
+      margin-bottom: 14px;
+      font-size: 0.95rem;
+      color: #5060aa;
+      line-height: 1.65;
+      text-align: center;
+      z-index: 1;
+      animation: slideDown 0.5s 0.08s ease both;
+    }
+
+    /* ── 搜尋 ── */
+    .search-card {
+      width: 100%; max-width: 520px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 12px var(--shadow);
+      z-index: 1;
+      animation: slideDown 0.5s 0.12s ease both;
+    }
+
+    .search-wrap { position: relative; }
+    .search-icon-pos {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem; pointer-events: none;
+    }
+    .search-box {
+      width: 100%;
+      padding: 12px 14px 12px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+      background: var(--surface);
+    }
+
+    /* ── 設備區 ── */
+    .devices-card {
+      width: 100%; max-width: 520px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 6px 24px var(--shadow);
+      z-index: 1;
+      animation: slideDown 0.5s 0.16s ease both;
+    }
+
+    .devices-card-header {
+      background: linear-gradient(135deg, #f0f3ff, #e8ecff);
+      padding: 14px 18px;
+      border-bottom: 1.5px solid var(--border);
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--primary2);
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+
+    #selected-count {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      font-size: 0.72rem; font-weight: 700;
+      padding: 2px 10px; border-radius: 20px;
+      display: none;
+    }
+
+    /* 設備格線 */
+    .devices-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .device-card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+      overflow: hidden;
+      min-height: 110px;
+    }
+    .device-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(102,126,234,0.06), rgba(118,75,162,0.06));
+      opacity: 0; transition: opacity 0.25s;
+    }
+    .device-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.18);
+    }
+    .device-card:hover::after { opacity: 1; }
+
+    .device-card.selected {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      border-color: transparent;
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.32);
+    }
+    .device-card.selected::after { opacity: 0; }
+
+    /* 勾勾角標 */
+    .device-card.selected::before {
+      content: '✓';
+      position: absolute;
+      top: 8px; right: 10px;
+      font-size: 0.75rem; font-weight: 700;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .device-icon {
+      font-size: 2.6rem;
+      margin-bottom: 9px;
+      transition: transform 0.25s;
+    }
+    .device-card.selected .device-icon { transform: scale(1.12); }
+
+    .device-name {
+      font-size: 1rem; font-weight: 600;
+      color: inherit;
+      line-height: 1.3;
+    }
+
+    /* 空狀態 */
+    .devices-empty {
+      grid-column: 1/-1;
+      text-align: center;
+      padding: 36px 24px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── 按鈕列 ── */
+    .btn-row {
+      width: 100%; max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+      z-index: 1;
+      animation: slideDown 0.5s 0.22s ease both;
+    }
+
+    .btn {
+      width: 100%; padding: 16px;
+      border-radius: 14px;
+      font-size: 1.05rem; font-weight: 700;
+      font-family: 'Noto Sans TC', sans-serif;
+      cursor: pointer; border: none;
+      display: flex; align-items: center;
+      justify-content: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-submit {
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(102,126,234,0.32);
+    }
+    .btn-submit:hover { box-shadow: 0 6px 22px rgba(102,126,234,0.42); transform: translateY(-2px); }
+    .btn-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-reset {
+      background: #f0f4ff;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+    .btn-reset:hover { background: #e2e8ff; color: var(--primary); border-color: var(--primary); }
+
+    /* ── 訊息 Toast ── */
+    .toast {
+      position: fixed;
+      top: 20px; left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      padding: 14px 26px;
+      border-radius: 14px;
+      font-size: 1rem; font-weight: 600;
+      text-align: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+      max-width: 360px; width: 90%;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { background: #28a745; color: #fff; }
+    .toast.error   { background: #e05555; color: #fff; }
+
+    /* ── Loading ── */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(30,40,80,0.45);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000;
+      opacity: 0; visibility: hidden;
+      transition: all 0.3s;
+    }
+    .loading-overlay.show { opacity: 1; visibility: visible; }
+
+    .loading-box {
+      background: var(--surface);
+      padding: 28px 32px;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 14px;
+    }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
+    .loading-text {
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--ink2);
+      font-family: 'Zen Maru Gothic', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+<div class="deco">💻</div>
+<div class="deco">📽️</div>
+<div class="deco">🌿</div>
+<div class="deco">🔊</div>
+
+<!-- ─── Header ─── -->
+<header>
+  <div class="header-row">
+    <div class="user-block">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div>
+        <div class="user-name" id="userName">載入中…</div>
+        <div class="user-sub">設備預約系統</div>
+      </div>
+    </div>
+    <button class="btn-return" id="backBtn">← 返回</button>
+  </div>
+  <div class="time-row">
+    <span class="time-display" id="timeDisplay">--:--:--</span>
+    <span style="font-size:0.78rem;color:var(--muted)">義大社工科</span>
+  </div>
+</header>
+
+<!-- ─── 說明 ─── -->
+<div class="intro-card">
+  📌 請選擇需要借用的設備，可複選；完成後按「送出預約」即可記錄。
+</div>
+
+<!-- ─── 搜尋 ─── -->
+<div class="search-card">
+  <div class="search-wrap">
+    <span class="search-icon-pos">🔍</span>
+    <input type="text" class="search-box" id="searchBox" placeholder="搜尋設備名稱…"/>
+  </div>
+</div>
+
+<!-- ─── 設備卡片 ─── -->
+<div class="devices-card">
+  <div class="devices-card-header">
+    <span>🖥 請選擇設備</span>
+    <span id="selected-count"></span>
+  </div>
+  <div class="devices-grid" id="devicesGrid">
+    <div class="devices-empty">載入設備中…</div>
+  </div>
+</div>
+
+<!-- ─── 按鈕 ─── -->
+<div class="btn-row">
+  <button class="btn btn-submit" id="submitBtn">✅ 送出預約</button>
+  <button class="btn btn-reset"  id="resetBtn">🔄 重置選擇</button>
+</div>
+
+<!-- ─── Loading ─── -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">送出中…</div>
+  </div>
+</div>
+
+<!-- ─── Toast ─── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyACtMKVngQdstQIvWwhxhG5AdvCZElmCdKvW8kQLWguHxLCWESDlVPjm13Ae_lEgDd/exec';
+
+  let selectedDevices  = new Set();
+  let currentUserName  = '';
+
+  /* ── 時鐘 ── */
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('timeDisplay').textContent =
+      now.toLocaleDateString('zh-TW') + '　' +
+      now.toLocaleTimeString('zh-TW', { hour12: false });
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  /* ── 載入使用者 ── */
+  async function loadUserData() {
+    try {
+      const account = localStorage.getItem('account');
+      if (!account) { alert('請先登入'); window.location.href = 'index.html'; return; }
+
+      const res  = await fetch(`${SCRIPT_URL}?account=${encodeURIComponent(account)}`);
+      const data = await res.json();
+      currentUserName = data.name || '訪客';
+    } catch {
+      currentUserName = '訪客';
+    }
+    document.getElementById('userName').textContent = currentUserName;
+    document.getElementById('userAvatar').textContent = currentUserName.charAt(0).toUpperCase();
+  }
+
+  /* ── 動態載入設備 ── */
+  async function loadDeviceDB() {
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=getDeviceDB`, { cache: 'no-store' });
+      const json = await res.json();
+      if (json.status === 'ok' && json.data.length > 0) {
+        renderDeviceCards(json.data);
+      } else {
+        document.getElementById('devicesGrid').innerHTML =
+          '<div class="devices-empty">目前尚無設備，請至後台新增</div>';
+      }
+    } catch {
+      document.getElementById('devicesGrid').innerHTML =
+        '<div class="devices-empty">載入失敗，請稍後再試</div>';
+    }
+  }
+
+  function renderDeviceCards(items) {
+    const grid = document.getElementById('devicesGrid');
+    grid.innerHTML = '';
+    selectedDevices.clear();
+    updateSelectedCount();
+
+    const icons = ['💻','📽️','🔊','🖱️','📷','🖨️','📺','🎙️'];
+
+    items.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'device-card';
+      card.dataset.device = item.name;
+      card.style.animationDelay = (i * 0.06) + 's';
+      card.style.animation = 'rowIn 0.3s ease both';
+      card.innerHTML = `
+        <span class="device-icon">${icons[i % icons.length]}</span>
+        <span class="device-name">${item.name}</span>
+      `;
+      card.addEventListener('click', function () {
+        const dev = this.dataset.device;
+        if (this.classList.contains('selected')) {
+          this.classList.remove('selected');
+          selectedDevices.delete(dev);
+        } else {
+          this.classList.add('selected');
+          selectedDevices.add(dev);
+        }
+        updateSelectedCount();
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  /* 已選數量標籤 */
+  function updateSelectedCount() {
+    const badge = document.getElementById('selected-count');
+    if (selectedDevices.size > 0) {
+      badge.textContent = `已選 ${selectedDevices.size} 項`;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  /* ── 搜尋 ── */
+  document.getElementById('searchBox').addEventListener('input', function () {
+    const term = this.value.toLowerCase().trim();
+    document.querySelectorAll('.device-card').forEach(card => {
+      if (!term) { card.style.display = 'flex'; return; }
+      const name = card.querySelector('.device-name').textContent.toLowerCase();
+      card.style.display = name.includes(term) ? 'flex' : 'none';
+    });
+  });
+
+  /* ── 返回 ── */
+  document.getElementById('backBtn').addEventListener('click', () => {
+    window.location.href = 'main.html';
+  });
+
+  /* ── 重置 ── */
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    selectedDevices.clear();
+    document.querySelectorAll('.device-card').forEach(c => {
+      c.classList.remove('selected');
+      c.style.display = 'flex';
+    });
+    document.getElementById('searchBox').value = '';
+    updateSelectedCount();
+  });
+
+  /* ── 送出 ── */
+  document.getElementById('submitBtn').addEventListener('click', async function () {
+    if (selectedDevices.size === 0) { showToast('請至少選擇一個設備', 'error'); return; }
+
+    const devices   = Array.from(selectedDevices);
+    const timestamp = new Date().toLocaleString('zh-TW');
+
+    showLoading(true);
+    try {
+      const deviceList = devices.join('、');
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action:'device', timestamp, userName: currentUserName, devices: deviceList })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || '寫入失敗');
+
+      showToast(`✓ 已成功預約 ${deviceList}！`, 'success');
+
+      // 重置
+      selectedDevices.clear();
+      document.querySelectorAll('.device-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('searchBox').value = '';
+      updateSelectedCount();
+    } catch {
+      showToast('提交失敗，請稍後再試', 'error');
+    } finally {
+      showLoading(false);
+    }
+  });
+
+  /* ── Toast ── */
+  let toastTimer;
+  function showToast(msg, type) {
+    clearTimeout(toastTimer);
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `toast ${type} show`;
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  /* ── Loading ── */
+  function showLoading(show) {
+    document.getElementById('loadingOverlay').classList.toggle('show', show);
+  }
+
+  /* ── 初始化 ── */
+  window.addEventListener('DOMContentLoaded', () => {
+    loadUserData();
+    loadDeviceDB();
+  });
+
+  /* rowIn 動畫 */
+  const style = document.createElement('style');
+  style.textContent = `@keyframes rowIn { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }`;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
